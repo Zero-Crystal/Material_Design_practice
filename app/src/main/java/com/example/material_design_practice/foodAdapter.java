@@ -27,13 +27,15 @@ public class foodAdapter extends BaseQuickAdapter<foodBean, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper, foodBean item) {
-        cardView = helper.getView(R.id.cardView);
+        cardView = helper.getView(R.id.item_cardView);
         ImageView imageView = helper.getView(R.id.iv_item_image);
 
         Glide.with(mContext).load(item.getFoodId()).into(imageView);
 
         ViewGroup.LayoutParams layoutParams = cardView.getLayoutParams();
         layoutParams.height = dip2px(mhighList.get(helper.getAdapterPosition()));
+
+        helper.addOnClickListener(R.id.item_cardView);
     }
 
     /**

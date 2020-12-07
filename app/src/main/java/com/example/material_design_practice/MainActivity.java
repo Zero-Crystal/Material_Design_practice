@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
@@ -146,6 +147,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView_food.setLayoutManager(manager);
         adapter = new foodAdapter(R.layout.item_food_card, mList, highList);
         recyclerView_food.setAdapter(adapter);
+        adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                foodBean food =mList.get(position);
+                Toast.makeText(MainActivity.this,"你点击了"+food.getFoodName(),Toast.LENGTH_SHORT).show();
+            }
+        });
 
         recyclerView_fruits = findViewById(R.id.recyclerView_horizontal);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
