@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/weather"
+        android:title="download"
+        android:icon="@mipmap/weather"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/delete"
+        android:title="DELETE"
+        android:icon="@drawable/delete"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/setting"
+        android:title="settting"
+        android:icon="@drawable/setting"
+        app:showAsAction="never"/>
+
+</menu>
