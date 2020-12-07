@@ -83,18 +83,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                refreshData();
+                createRetrofit();
             }
         });
-    }
-
-    /*
-     * 使用 匿名类的方式 开启新线程，沉睡2秒，使本地刷新更明显
-     * 后续网络数据刷新则不需要此功能
-     * runOnUiThread()切换为主线程；
-     * */
-    private void refreshData() {
-        createRetrofit();
     }
 
     /*
@@ -238,38 +229,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void createRetrofit() {
-        /*new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-
-            }
-        }).start();*/
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://service.picasso.adesk.com")
-                //设置数据解析器
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        ApiService api = retrofit.create(ApiService.class);
-        api.getPicture().enqueue(new Callback<pictureResponse>() {
-            @Override
-            public void onResponse(Call<pictureResponse> call, Response<pictureResponse> response) {
-                List<pictureResponse.ResBean.VerticalBean> data = response.body().getRes().getVertical();
-                if (data != null && data.size() > 0) {
-                    mList.clear();
-                    for (int i = 0; i < ITEM_SUM; i++) {
-                        mList.add(data.get(i));
+                Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl("http://service.picasso.adesk.com")
+                        //设置数据解析器
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+                ApiService api = retrofit.create(ApiService.class);
+                api.getPicture().enqueue(new Callback<pictureResponse>() {
+                    @Override
+                    public void onResponse(Call<pictureResponse> call, Response<pictureResponse> response) {
+                        List<pictureResponse.ResBean.VerticalBean> data = response.body().getRes().getVertical();
+                        if (data != null && data.size() > 0) {
+                            mList.clear();
+                            for (int i = 0; i < ITEM_SUM; i++) {
+                                mList.add(data.get(i));
+                            }
+                            adapter.notifyItemInserted(mList.size());
+                        }else {
+                            Log.d(TAG, "onResponse: 壁纸数据为空！");
+                        }
+                        Log.d(TAG, "onResponse: "+response.body().toString());
                     }
-                    adapter.notifyItemInserted(mList.size());
-                }else {
-                    Log.d(TAG, "onResponse: 壁纸数据为空！");
-                }
-                Log.d(TAG, "onResponse: "+response.body().toString());
-            }
 
-            @Override
-            public void onFailure(Call<pictureResponse> call, Throwable t) {
-                Log.d(TAG, "onFailure: "+t.toString());
+                    @Override
+                    public void onFailure(Call<pictureResponse> call, Throwable t) {
+                        Log.d(TAG, "onFailure: "+t.toString());
+                    }
+                });
             }
-        });
+        }).start();
+
     }
 }
