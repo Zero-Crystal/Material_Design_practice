@@ -11,26 +11,27 @@ import androidx.cardview.widget.CardView;
 import com.bumptech.glide.Glide;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
+import com.example.material_design_practice.pictureResponse;
 
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-public class foodAdapter extends BaseQuickAdapter<foodBean, BaseViewHolder> {
+public class foodAdapter extends BaseQuickAdapter<pictureResponse.ResBean.VerticalBean, BaseViewHolder> {
     private List<Integer> mhighList = new ArrayList<>();
     private CardView cardView;
 
-    public foodAdapter(int layoutResId, @Nullable List<foodBean> data, List<Integer> highList) {
+    public foodAdapter(int layoutResId, @Nullable List<pictureResponse.ResBean.VerticalBean> data, List<Integer> highList) {
         super(layoutResId, data);
         this.mhighList = highList;
     }
 
     @Override
-    protected void convert(BaseViewHolder helper, foodBean item) {
+    protected void convert(BaseViewHolder helper, pictureResponse.ResBean.VerticalBean item) {
         cardView = helper.getView(R.id.item_cardView);
         ImageView imageView = helper.getView(R.id.iv_item_image);
 
-        Glide.with(mContext).load(item.getFoodId()).into(imageView);
+        Glide.with(mContext).load(item.getImg()).into(imageView);
 
         ViewGroup.LayoutParams layoutParams = cardView.getLayoutParams();
         layoutParams.height = dip2px(mhighList.get(helper.getAdapterPosition()));

@@ -4,7 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,6 +29,16 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private FloatingActionButton floatActionbtn;
@@ -34,13 +46,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private NavigationView navigationView;
     private RecyclerView recyclerView_food;
     private foodAdapter adapter;
-    private List<foodBean> mList = new ArrayList<>();
+    private List<pictureResponse.ResBean.VerticalBean> mList = new ArrayList<>();
     private SwipeRefreshLayout refreshLayout;
     private List<Integer> highList = new ArrayList<>();
     private int ITEM_SUM = 8;
-    private RecyclerView recyclerView_fruits;
-    private List<fruitsBean> mFruitList = new ArrayList<>();
-    private fruitsAdapter fruitsAdapter;
+
+    private static final String TAG = "Zero";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,24 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * runOnUiThread()切换为主线程；
      * */
     private void refreshData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        initItemData();
-                        adapter.notifyDataSetChanged();
-                        refreshLayout.setRefreshing(false);
-                    }
-                });
-            }
-        }).start();
+        createRetrofit();
     }
 
     /*
@@ -150,21 +144,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                foodBean food =mList.get(position);
-                Toast.makeText(MainActivity.this,"你点击了"+food.getFoodName(),Toast.LENGTH_SHORT).show();
+                pictureResponse.ResBean.VerticalBean food = mList.get(position);
+                Toast.makeText(MainActivity.this, "你点击了Item" , Toast.LENGTH_SHORT).show();
             }
         });
-
-        recyclerView_fruits = findViewById(R.id.recyclerView_horizontal);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        recyclerView_fruits.setLayoutManager(layoutManager);
-        fruitsAdapter = new fruitsAdapter(R.layout.item_fruits_show, mFruitList);
-        //新增一次滑动一个item效果
-        PagerSnapHelper snapHelper = new PagerSnapHelper();
-        recyclerView_fruits.setOnFlingListener(null);
-        snapHelper.attachToRecyclerView(recyclerView_fruits);
-        recyclerView_fruits.setAdapter(fruitsAdapter);
     }
 
     /*
@@ -172,13 +155,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * */
     public void initItemData() {
         //设置第1个item和最后一个item高度为100，中间item的高度为270；
-        highList.add(100);
-        for (int i = 0; i < ITEM_SUM - 2; i++) {
-            highList.add(270);
+        highList.add(150);
+        for (int i = 0; i < ITEM_SUM-2; i++) {
+            highList.add(300);
         }
-        highList.add(100);
+        highList.add(150);
 
-        //向mList中添加数据；
+        createRetrofit();
+
+        /*//向mList中添加数据；
         mList.clear();
         foodBean food_1 = new foodBean("food_1", R.drawable.food_1);
         mList.add(food_1);
@@ -195,17 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         foodBean food_7 = new foodBean("food_7", R.drawable.food_7);
         mList.add(food_7);
         foodBean food_8 = new foodBean("food_8", R.drawable.food_8);
-        mList.add(food_8);
-
-        mFruitList.clear();
-        fruitsBean fruit_1 = new fruitsBean("fruit_1", R.drawable.fruit_1);
-        mFruitList.add(fruit_1);
-        fruitsBean fruit_2 = new fruitsBean("fruit_2", R.drawable.fruit_2);
-        mFruitList.add(fruit_2);
-        fruitsBean fruit_3 = new fruitsBean("fruit_3", R.drawable.fruit_3);
-        mFruitList.add(fruit_3);
-        fruitsBean fruit_4 = new fruitsBean("fruit_4", R.drawable.fruit_4);
-        mFruitList.add(fruit_4);
+        mList.add(food_8);*/
     }
 
     /*
@@ -224,7 +199,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.weather:
-                Toast.makeText(this, "you click DOWNLOAD", Toast.LENGTH_SHORT).show();
+                Intent intent1=new Intent(MainActivity.this,RecyclerView_Horizontal_Activity.class);
+                startActivity(intent1);
                 break;
             case R.id.delete:
                 Toast.makeText(this, "you click DELECT", Toast.LENGTH_SHORT).show();
@@ -259,5 +235,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 break;
         }
+    }
+
+    private void createRetrofit() {
+        /*new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        }).start();*/
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://service.picasso.adesk.com")
+                //设置数据解析器
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ApiService api = retrofit.create(ApiService.class);
+        api.getPicture().enqueue(new Callback<pictureResponse>() {
+            @Override
+            public void onResponse(Call<pictureResponse> call, Response<pictureResponse> response) {
+                List<pictureResponse.ResBean.VerticalBean> data = response.body().getRes().getVertical();
+                if (data != null && data.size() > 0) {
+                    mList.clear();
+                    for (int i = 0; i < ITEM_SUM; i++) {
+                        mList.add(data.get(i));
+                    }
+                    adapter.notifyItemInserted(mList.size());
+                }else {
+                    Log.d(TAG, "onResponse: 壁纸数据为空！");
+                }
+                Log.d(TAG, "onResponse: "+response.body().toString());
+            }
+
+            @Override
+            public void onFailure(Call<pictureResponse> call, Throwable t) {
+                Log.d(TAG, "onFailure: "+t.toString());
+            }
+        });
     }
 }
